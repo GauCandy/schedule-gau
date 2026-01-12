@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let computedWeek = null;
   let currentSlot = { day: null, isMorning: null };
   let scheduleMap = {};
+  let removedSubjectIds = [];
 
   // Nhận diện điện thoại để cố định giao diện mobile ngay cả khi xoay ngang
   const ua = navigator.userAgent || '';
@@ -89,53 +90,82 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeSubjectModal = () => {
     if (subjectModal) subjectModal.classList.remove('show');
     currentSlot = { day: null, isMorning: null };
+    removedSubjectIds = [];
     resetSubjectStatus('');
     if (subjectEntries) subjectEntries.innerHTML = '';
   };
 
-  const createSubjectRow = (defaults = {}) => {
+  const setRowCaret = (row) => {
+    const caret = row?.querySelector('.subject-row-caret');
+    if (!caret) return;
+    caret.textContent = row.classList.contains('collapsed') ? '▸' : '▾';
+  };
+
+  const createSubjectRow = (defaults = {}, collapsed = false) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'subject-row-wrapper';
+
     const row = document.createElement('div');
     row.className = 'subject-row';
     if (defaults.id) row.dataset.id = defaults.id;
+    const title =
+      (defaults.subject_name || 'Lịch mới') +
+      (defaults.start_week ? ` · Tuần ${defaults.start_week}` : '');
+    if (collapsed) row.classList.add('collapsed');
     row.innerHTML = `
-      <div>
-        <input type="text" name="subject_name" placeholder="Tên môn học" value="${defaults.subject_name || ''}">
-        <small>Bắt buộc</small>
+      <div class="subject-row-header">
+        <div class="subject-row-title">${title}</div>
+        <span class="subject-row-caret">${collapsed ? '▸' : '▾'}</span>
       </div>
-      <div>
-        <input type="text" name="teacher" placeholder="Giáo viên" value="${defaults.teacher || ''}">
+      <div class="subject-row-body">
+        <div>
+          <input type="text" name="subject_name" placeholder="Tên môn học" value="${defaults.subject_name || ''}">
+          <small>Bắt buộc</small>
+        </div>
+        <div>
+          <input type="text" name="teacher" placeholder="Giáo viên" value="${defaults.teacher || ''}">
+        </div>
+        <div>
+          <input type="text" name="room" placeholder="Phòng học" value="${defaults.room || ''}">
+        </div>
+        <div>
+          <input type="number" name="start_week" min="1" placeholder="Tuần bắt đầu" value="${defaults.start_week || ''}">
+        </div>
+        <div>
+          <input type="number" name="end_week" min="1" placeholder="Tuần kết thúc" value="${defaults.end_week || ''}">
+        </div>
+        <div>
+          <input type="text" name="off_weeks" placeholder="Off weeks (vd: 22,23)" value="${defaults.off_weeks || ''}">
+        </div>
       </div>
-      <div>
-        <input type="text" name="room" placeholder="Phòng học" value="${defaults.room || ''}">
-      </div>
-      <div>
-        <input type="number" name="start_week" min="1" placeholder="Tuần bắt đầu" value="${defaults.start_week || ''}">
-      </div>
-      <div>
-        <input type="number" name="end_week" min="1" placeholder="Tuần kết thúc" value="${defaults.end_week || ''}">
-      </div>
-      <div>
-        <input type="text" name="off_weeks" placeholder="Off weeks (vd: 22,23)" value="${defaults.off_weeks || ''}">
-      </div>
-      <button class="remove-entry" aria-label="Xóa">×</button>
     `;
-    return row;
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'remove-entry danger standalone';
+    removeBtn.setAttribute('aria-label', 'Xóa');
+    removeBtn.textContent = '🗑';
+
+    wrapper.appendChild(row);
+    wrapper.appendChild(removeBtn);
+    return { wrapper, row };
   };
 
   const ensureSubjectRows = () => {
     if (!subjectEntries) return;
-    const rows = subjectEntries.querySelectorAll('.subject-row');
-    rows.forEach((row, idx) => {
-      const removeBtn = row.querySelector('.remove-entry');
-      if (removeBtn) removeBtn.style.display = rows.length > 1 ? 'inline-flex' : 'none';
+    const wrappers = subjectEntries.querySelectorAll('.subject-row-wrapper');
+    wrappers.forEach((wrap) => {
+      const removeBtn = wrap.querySelector('.remove-entry');
+      if (removeBtn) removeBtn.style.display = 'inline-flex';
     });
   };
 
-  const addSubjectRow = (defaults = {}) => {
+  const addSubjectRow = (defaults = {}, collapsed = false) => {
     if (!subjectEntries) return;
-    const row = createSubjectRow(defaults);
-    subjectEntries.appendChild(row);
+    const { wrapper, row } = createSubjectRow(defaults, collapsed);
+    setRowCaret(row);
+    subjectEntries.appendChild(wrapper);
     ensureSubjectRows();
+    return row;
   };
 
   const getCurrentWeekNumber = () =>
@@ -143,30 +173,57 @@ document.addEventListener('DOMContentLoaded', () => {
       ? null
       : computedWeek + weekOffset;
 
-  const openSubjectModal = (day, isMorning, existing = null) => {
+  const loadSlotEntries = async (day, isMorning) => {
+    const week = getCurrentWeekNumber();
+    const params = new URLSearchParams({
+      day: String(day),
+      is_morning: isMorning ? '1' : '0',
+    });
+    if (week) params.append('week', String(week));
+    const res = await fetch(
+      `/api/classes/${selectedClassId}/subjects?${params.toString()}`
+    );
+    if (!res.ok) {
+      const errPayload = await res.json().catch(() => ({}));
+      throw new Error(errPayload.error || 'Không tải được lịch');
+    }
+    const payload = await res.json();
+    return payload.data || [];
+  };
+
+  const openSubjectModal = async (day, isMorning) => {
     if (!subjectModal || !subjectEntries) return;
     currentSlot = { day, isMorning };
     subjectEntries.innerHTML = '';
-    if (existing) {
-      addSubjectRow({
-        id: existing.id,
-        subject_name: existing.subject_name,
-        teacher: existing.teacher,
-        room: existing.room,
-        start_week: existing.start_week,
-        end_week: existing.end_week,
-        off_weeks: existing.off_weeks,
-      });
-    } else {
-      addSubjectRow({ start_week: '', end_week: '' });
-    }
-    ensureSubjectRows();
+    removedSubjectIds = [];
+
     if (subjectSlotLabel) {
       const buoi = isMorning ? 'Sáng' : 'Chiều';
-      subjectSlotLabel.textContent = `Thêm lịch · ${buoi} · Thứ ${day}`;
+      subjectSlotLabel.textContent = `Lịch · ${buoi} · Thứ ${day}`;
     }
-    subjectModal.classList.add('show');
+    resetSubjectStatus('Đang tải lịch...');
+    try {
+      const existingList = await loadSlotEntries(day, isMorning);
+      if (existingList.length) {
+        existingList.forEach((item) => {
+          addSubjectRow({
+            id: item.id,
+            subject_name: item.subject_name,
+            teacher: item.teacher,
+            room: item.room,
+            start_week: item.start_week,
+            end_week: item.end_week,
+            off_weeks: item.off_weeks,
+          }, true);
+        });
+      }
+    } catch (err) {
+      resetSubjectStatus(err.message || 'Không tải được lịch', true);
+    }
+
+    ensureSubjectRows();
     resetSubjectStatus('');
+    subjectModal.classList.add('show');
   };
   if (heroWeek) heroWeek.textContent = placeholder;
   const toastContainer =
@@ -981,7 +1038,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (addSubjectEntryBtn) {
     addSubjectEntryBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      addSubjectRow({ start_week: '', end_week: '' });
+      const row = addSubjectRow({ start_week: '', end_week: '' }, false);
+      if (row) row.classList.remove('collapsed');
     });
   }
 
@@ -989,9 +1047,21 @@ document.addEventListener('DOMContentLoaded', () => {
     subjectEntries.addEventListener('click', (e) => {
       if (e.target.classList.contains('remove-entry')) {
         e.preventDefault();
-        const row = e.target.closest('.subject-row');
-        if (row) row.remove();
+        const wrapper = e.target.closest('.subject-row-wrapper');
+        const row = wrapper?.querySelector('.subject-row');
+        if (row?.dataset.id) removedSubjectIds.push(row.dataset.id);
+        if (wrapper) wrapper.remove();
         ensureSubjectRows();
+        return;
+      }
+
+      const header = e.target.closest('.subject-row-header');
+      if (header && !e.target.classList.contains('remove-entry')) {
+        const row = header.closest('.subject-row');
+        if (row) {
+          row.classList.toggle('collapsed');
+          setRowCaret(row);
+        }
       }
     });
   }
@@ -1004,12 +1074,33 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const rows = Array.from(subjectEntries?.querySelectorAll('.subject-row') || []);
-    if (!rows.length) {
-      resetSubjectStatus('Thêm ít nhất 1 môn', true);
+    if (!rows.length && !removedSubjectIds.length) {
+      resetSubjectStatus('Thêm ít nhất 1 môn hoặc xóa lịch cũ', true);
       return;
     }
     resetSubjectStatus('Đang lưu...');
     try {
+      if (removedSubjectIds.length) {
+        for (const sid of removedSubjectIds) {
+          const res = await fetch(
+            `/api/classes/${selectedClassId}/subjects/${sid}`,
+            { method: 'DELETE' }
+          );
+          if (!res.ok) {
+            const errPayload = await res.json().catch(() => ({}));
+            throw new Error(errPayload.error || 'Xóa lịch thất bại');
+          }
+        }
+      }
+
+      if (!rows.length) {
+        resetSubjectStatus('Đã xóa lịch');
+        closeSubjectModal();
+        await loadSchedule();
+        showToast('Đã xóa lịch học');
+        return;
+      }
+
       for (const row of rows) {
         const subjectId = row.dataset.id || '';
         const subjectName =

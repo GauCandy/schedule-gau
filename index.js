@@ -242,6 +242,44 @@ async function handleApi(req, res) {
     }
 
     if (req.method === 'GET' && segments[3] === 'subjects') {
+      const dayFilter = url.searchParams.get('day');
+      const morningFilter = url.searchParams.get('is_morning');
+      // Trả về toàn bộ môn của một slot (dùng cho modal edit)
+      if (dayFilter && morningFilter !== null) {
+        const dayNum = Number(dayFilter);
+        const isMorningNum = Number(morningFilter);
+        const weekFilter = Number(url.searchParams.get('week') || 0);
+        if (!Number.isInteger(dayNum) || dayNum < 1 || dayNum > 7) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'day phải trong 1-7' }));
+          return true;
+        }
+        if (isMorningNum !== 0 && isMorningNum !== 1) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'is_morning phải là 0 hoặc 1' }));
+          return true;
+        }
+        try {
+          const rows = await dbAll(
+            `SELECT id, subject_name, teacher, room, start_week, end_week, day_of_week, is_morning, off_weeks, created_at
+             FROM subjects
+             WHERE class_uid = ? AND day_of_week = ? AND is_morning = ?
+             ${Number.isInteger(weekFilter) && weekFilter > 0 ? 'AND end_week >= ?' : ''}
+             ORDER BY start_week ASC, id DESC`,
+            Number.isInteger(weekFilter) && weekFilter > 0
+              ? [classId, dayNum, isMorningNum, weekFilter]
+              : [classId, dayNum, isMorningNum]
+          );
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ data: rows }));
+        } catch (err) {
+          console.error('List subjects slot error:', err);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Server error' }));
+        }
+        return true;
+      }
+
       const week = Number(url.searchParams.get('week') || 0);
       const includeUpcoming =
         url.searchParams.get('include_upcoming') === '1' ||
@@ -479,6 +517,29 @@ async function handleApi(req, res) {
           return true;
         }
         console.error('Update subject error:', err);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Server error' }));
+      }
+      return true;
+    }
+
+    if (req.method === 'DELETE' && segments[3] === 'subjects' && segments[4]) {
+      const subjectId = segments[4];
+      try {
+        const row = await dbGet(
+          'SELECT id FROM subjects WHERE id = ? AND class_uid = ?',
+          [subjectId, classId]
+        );
+        if (!row) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Không tìm thấy môn học' }));
+          return true;
+        }
+        await dbRun('DELETE FROM subjects WHERE id = ?', [subjectId]);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ data: { id: subjectId } }));
+      } catch (err) {
+        console.error('Delete subject error:', err);
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Server error' }));
       }
