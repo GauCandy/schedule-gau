@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thời khóa biểu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=__ASSET_VERSION__">
+</head>
+<body>
+  <div class="bg-accent"></div>
+  <div class="page">
+    <header class="hero">
+      <div class="brand">
+        <img class="logo" src="./logos/logo.gif" alt="Logo công cụ thời khóa biểu" loading="lazy">
+        <div class="brand-text">
+          <p class="eyebrow">Công cụ quản lý lịch học</p>
+          <h1>Thời khóa biểu</h1>
+          <p class="lede">Xem và quản lý lịch học theo tuần.</p>
+        </div>
+      </div>
+      <div class="hero-middle">
+        <div class="hero-sponsor" aria-label="Nhắn nhủ tài trợ">
+          <div class="sponsor-head">
+            <span class="sponsor-label">Quẳng 🦊</span>
+            <span class="sponsor-noads">(No ADS)</span>
+          </div>
+          <span class="sponsor-text">Chúng tôi chưa có nhà tài trợ :(</span>
+          <span class="sponsor-donate">pls donate MBBANK: gaukeo263</span>
+        </div>
+        <div class="hero-class" aria-label="Chọn lớp">
+          <div class="class-select">
+            <button class="class-trigger" id="class-trigger" aria-haspopup="listbox" aria-expanded="false">Chọn lớp</button>
+            <div class="class-panel" id="class-panel">
+              <input id="class-search" class="class-search" type="text" placeholder="Tìm lớp...">
+              <div class="class-options" id="class-options" role="listbox" aria-label="Danh sách lớp"></div>
+              <p class="status small" id="class-status"></p>
+            </div>
+          </div>
+          <button class="ghost full" id="open-create-class">Tạo lịch mới</button>
+        </div>
+      </div>
+      <div class="hero-week" aria-label="Tuần hiện tại" id="hero-week-trigger">
+        <div class="week-title">
+          <span>Tuần</span>
+        </div>
+        <span class="week-value" id="hero-week">--</span>
+        <button class="week-edit-btn" id="week-edit-btn" aria-label="Chỉnh tuần mốc" type="button"></button>
+      </div>
+    </header>
+
+    <section class="grid">
+      <aside class="admin-bar">
+        <div class="admin-head">
+        <div class="admin-icon" aria-hidden="true">
+          <span class="admin-gear"></span>
+        </div>
+        <p class="eyebrow">Admin tool</p>
+      </div>
+        <div class="admin-body">
+          <div class="admin-controls">
+            <div class="admin-actions">
+              <button class="ghost" id="open-admin">Mở admin</button>
+            </div>
+            <div class="admin-actions">
+              <button class="primary" id="toggle-edit" style="display: none;">Edit: OFF</button>
+            </div>
+            <p class="status" id="admin-status"></p>
+            <div class="admin-actions vertical">
+              <button class="ghost" id="change-password" style="display: none;">Đổi mật khẩu</button>
+              <button class="ghost danger" id="clear-password" style="display: none;">Xóa mật khẩu</button>
+            </div>
+          </div>
+          <div class="admin-overlay" id="admin-overlay">
+            <div class="overlay-card">
+              <p class="overlay-title">Nhập mật khẩu lớp</p>
+              <input id="admin-password" type="password" placeholder="Mật khẩu chỉnh sửa">
+              <div class="overlay-actions">
+                <button class="ghost" id="cancel-admin-password">Huỷ</button>
+                <button class="primary" id="save-password">Xác nhận</button>
+              </div>
+              <p class="status" id="admin-status-overlay"></p>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div class="schedule">
+        <div class="schedule-header">
+          <div class="week-label">Lịch: <span id="current-class">--</span></div>
+          <div class="week-nav">
+            <button class="pill ghost" data-dir="prev" aria-label="Tuần trước">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="pill ghost" data-dir="home" aria-label="Về tuần hiện tại">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="2" />
+                <path d="M12 3.5v3M12 17.5v3M20.5 12h-3M6.5 12h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <circle cx="12" cy="12" r="1.6" fill="currentColor" />
+              </svg>
+            </button>
+            <button class="pill ghost" data-dir="next" aria-label="Tuần sau">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="days">
+          <div class="day-card">
+            <span class="day-dot" aria-hidden="true">!</span>
+            <div class="day-name">Thứ 2</div>
+            <div class="session morning empty" data-day="2" data-morning="1">Chưa có lịch</div>
+            <div class="session afternoon empty" data-day="2" data-morning="0">Chưa có lịch</div>
+          </div>
+          <div class="day-card">
+            <span class="day-dot" aria-hidden="true">!</span>
+            <div class="day-name">Thứ 3</div>
+            <div class="session morning empty" data-day="3" data-morning="1">Chưa có lịch</div>
+            <div class="session afternoon empty" data-day="3" data-morning="0">Chưa có lịch</div>
+          </div>
+          <div class="day-card">
+            <span class="day-dot" aria-hidden="true">!</span>
+            <div class="day-name">Thứ 4</div>
+            <div class="session morning empty" data-day="4" data-morning="1">Chưa có lịch</div>
+            <div class="session afternoon empty" data-day="4" data-morning="0">Chưa có lịch</div>
+          </div>
+          <div class="day-card">
+            <span class="day-dot" aria-hidden="true">!</span>
+            <div class="day-name">Thứ 5</div>
+            <div class="session morning empty" data-day="5" data-morning="1">Chưa có lịch</div>
+            <div class="session afternoon empty" data-day="5" data-morning="0">Chưa có lịch</div>
+          </div>
+          <div class="day-card">
+            <span class="day-dot" aria-hidden="true">!</span>
+            <div class="day-name">Thứ 6</div>
+            <div class="session morning empty" data-day="6" data-morning="1">Chưa có lịch</div>
+            <div class="session afternoon empty" data-day="6" data-morning="0">Chưa có lịch</div>
+          </div>
+          <div class="day-card">
+            <span class="day-dot" aria-hidden="true">!</span>
+            <div class="day-name">Thứ 7</div>
+            <div class="session morning empty" data-day="7" data-morning="1">Chưa có lịch</div>
+            <div class="session afternoon empty" data-day="7" data-morning="0">Chưa có lịch</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="class-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2>Thông tin lớp mới</h2>
+        </div>
+        <button class="icon-btn" id="close-class-modal" aria-label="Đóng">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label for="new-class-name">Tên lớp</label>
+        <input id="new-class-name" type="text" placeholder="VD: 10A1 hoặc CNTT-K19">
+
+        <label for="new-class-password">Mật khẩu (tuỳ chọn)</label>
+        <input id="new-class-password" type="password" placeholder="Dùng khi chỉnh sửa lớp">
+        <p class="status" id="create-class-status"></p>
+      </div>
+      <div class="modal-actions">
+        <button class="ghost" id="close-class-modal-2">Huỷ</button>
+        <button class="primary" id="create-class-btn">Tạo lớp</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="base-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Tuần mốc</p>
+          <h2>Cập nhật tuần mốc</h2>
+        </div>
+        <button class="icon-btn" id="close-base-modal" aria-label="Đóng">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label for="edit-base-date">Ngày mốc</label>
+        <input id="edit-base-date" type="date">
+
+        <label for="edit-base-week">Tuần mốc</label>
+        <input id="edit-base-week" type="number" min="1" placeholder="VD: 24">
+      </div>
+      <div class="modal-actions">
+        <button class="ghost" id="close-base-modal-2">Huỷ</button>
+        <button class="primary" id="save-base-info">Lưu tuần mốc</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="subject-modal">
+    <div class="modal wide">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow" id="subject-slot-label">Thêm lịch học</p>
+          <h2>Thêm môn học</h2>
+        </div>
+        <button class="icon-btn" id="close-subject-modal" aria-label="Đóng">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="subject-entries" id="subject-entries"></div>
+        <button class="ghost" id="add-subject-entry">+ Thêm lịch mới</button>
+        <p class="status" id="subject-status"></p>
+      </div>
+      <div class="modal-actions">
+        <button class="ghost" id="cancel-subject-modal">Huỷ</button>
+        <button class="primary" id="save-subjects">Lưu lịch</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Credit: gaucandy · © 2026</p>
+  </footer>
+
+  <script src="./app.js?v=__ASSET_VERSION__"></script>
+</body>
+</html>
