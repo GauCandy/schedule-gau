@@ -1,0 +1,4 @@
+node_modules
+db/*.sqlite
+*.pem
+.DS_Store

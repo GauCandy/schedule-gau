@@ -1,6 +1,8 @@
 const http = require('http');
+const https = require('https');
 const path = require('path');
 const fs = require('fs/promises');
+const fsSync = require('fs');
 const crypto = require('crypto');
 const sqlite3 = require('sqlite3');
 const { initSchema } = require('./initSchema');
@@ -76,7 +78,8 @@ function hashPassword(password) {
 }
 
 async function handleApi(req, res) {
-  const url = new URL(req.url, `http://${req.headers.host}`);
+  const proto = req.socket.encrypted ? 'https' : 'http';
+  const url = new URL(req.url, `${proto}://${req.headers.host}`);
   const segments = url.pathname.split('/').filter(Boolean);
 
   if (url.pathname === '/api/classes') {
@@ -570,8 +573,8 @@ async function serveStatic(req, res) {
   }
 }
 
-function startServer(port) {
-  const server = http.createServer(async (req, res) => {
+function createHandler() {
+  return async (req, res) => {
     try {
       const handled = await handleApi(req, res);
       if (handled) return;
@@ -588,8 +591,30 @@ function startServer(port) {
       res.writeHead(500);
       res.end('Server error');
     }
-  });
+  };
+}
 
+function startServer(port) {
+  const handler = createHandler();
+  const keyPath = process.env.SSL_KEY_PATH;
+  const certPath = process.env.SSL_CERT_PATH;
+  if (keyPath && certPath && fsSync.existsSync(keyPath) && fsSync.existsSync(certPath)) {
+    try {
+      const options = {
+        key: fsSync.readFileSync(keyPath),
+        cert: fsSync.readFileSync(certPath),
+      };
+      const server = https.createServer(options, handler);
+      server.listen(port, () => {
+        console.log(`Timetable UI available at https://localhost:${port}`);
+      });
+      return;
+    } catch (err) {
+      console.error('Failed to start HTTPS server, falling back to HTTP:', err);
+    }
+  }
+
+  const server = http.createServer(handler);
   server.listen(port, () => {
     console.log(`Timetable UI available at http://localhost:${port}`);
   });
