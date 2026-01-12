@@ -34,4 +34,5 @@ npm start
 
 ## Lưu ý
 - File DB (`db/database.sqlite`) và các file `.pem` đã được bỏ qua khỏi git.
-- `.env` hiện chỉ chứa `PORT`, không có bí mật; bạn có thể commit hoặc tự quản lý.
+- `.env` hiện chỉ chứa `PORT` + cấu hình SSL, không có bí mật; bạn có thể commit hoặc tự quản lý.
+- Khuyến nghị đặt sau reverse proxy (nginx/caddy) để xử lý SSL, nén, cache tĩnh, rate-limit và dễ cấu hình domain. Nếu proxy SSL, có thể đặt `SSL_ENABLED=false` và chỉ dùng HTTP nội bộ.
