@@ -758,7 +758,35 @@ input[type="number"] {
   color: #0b1020;
   font-weight: 600;
   min-height: 54px;
-  transition: transform 120ms ease;
+  transition: transform 120ms ease, opacity 150ms ease;
+}
+
+.fade-in {
+  animation: fadeInUp 200ms ease;
+}
+
+.fade-out {
+  animation: fadeOut 200ms ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0.3;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 0.8;
+  }
+  to {
+    opacity: 0.6;
+  }
 }
 
 .session.morning {
@@ -967,6 +995,13 @@ input[type="number"] {
   opacity: 0.8;
 }
 
+.mobile-mode .footer {
+  width: 100%;
+  margin: 0;
+  padding: 12px 10px 0;
+  text-align: center;
+}
+
 .toast-container {
   position: fixed;
   top: 20px;
@@ -995,6 +1030,16 @@ input[type="number"] {
   transform: translateY(0);
 }
 
+.week-message {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.mobile-mode .week-message {
+  padding: 0 10px;
+}
+
 .mobile-hide {
   display: block;
 }
@@ -1008,6 +1053,11 @@ input[type="number"] {
   gap: 14px;
   flex-direction: column;
   align-items: stretch;
+}
+
+.mobile-mode .page {
+  width: 100%;
+  padding: 12px 6px 32px;
 }
 
 .mobile-mode .brand {
@@ -1077,17 +1127,32 @@ input[type="number"] {
 }
 
 .mobile-mode .schedule {
-  padding: 16px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .mobile-mode .schedule-header {
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
+  padding: 0 6px 8px;
+  margin-top: 6px;
 }
 
 .mobile-mode .days {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0 0;
+  gap: 6px;
+}
+
+.mobile-mode .day-card.mobile-empty {
+  display: none;
+}
+
+.mobile-mode .day-card {
+  margin: 0;
 }
 
 .mobile-mode .class-trigger {
@@ -1100,6 +1165,8 @@ input[type="number"] {
   min-height: 48px;
   padding: 10px;
   font-size: 12px;
+  cursor: default;
+  transform: none;
 }
 
 .mobile-mode .subject-name {
@@ -1108,6 +1175,10 @@ input[type="number"] {
 
 .mobile-mode .subject-meta {
   font-size: 11px;
+}
+
+.mobile-mode .session:hover {
+  transform: none;
 }
 
 @media (max-width: 900px) {

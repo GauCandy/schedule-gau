@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const heroWeekTrigger = document.getElementById('hero-week-trigger');
   const weekEditBtn = document.getElementById('week-edit-btn');
   const weekNavButtons = document.querySelectorAll('.week-nav [data-dir]');
+  const weekMessage = document.getElementById('week-message');
   const modal = document.getElementById('class-modal');
   const openModalBtn = document.getElementById('open-create-class');
   const closeModalBtns = [
@@ -508,6 +509,9 @@ document.addEventListener('DOMContentLoaded', () => {
       slot.innerHTML = 'Chưa có lịch';
       slot.dataset.subjectId = '';
     });
+    const dayCards = document.querySelectorAll('.day-card');
+    dayCards.forEach((card) => card.classList.add('mobile-empty'));
+    if (weekMessage) weekMessage.textContent = 'Tuần này không có lịch.';
   };
 
   const renderSchedule = (rows = []) => {
@@ -544,13 +548,35 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="subject-name">${data.subject_name}</div>
           <div class="subject-meta">${meta.join('<br>') || ' '}</div>
         `;
+        slot.classList.remove('fade-out');
+        slot.classList.add('fade-in');
       } else {
         slot.classList.add('empty');
         slot.classList.remove('filled');
         slot.innerHTML = 'Chưa có lịch';
         slot.dataset.subjectId = fallback?.id || '';
+        slot.classList.remove('fade-in');
+        slot.classList.add('fade-out');
       }
     });
+
+    const dayCards = document.querySelectorAll('.day-card');
+    let hasCurrent = false;
+    dayCards.forEach((card) => {
+      const slots = card.querySelectorAll('.session');
+      const filled = Array.from(slots).some((slot) =>
+        slot.classList.contains('filled')
+      );
+      if (filled) {
+        card.classList.remove('mobile-empty');
+        hasCurrent = true;
+      } else {
+        card.classList.add('mobile-empty');
+      }
+    });
+    if (weekMessage) {
+      weekMessage.textContent = hasCurrent ? '' : 'Tuần này không có lịch.';
+    }
   };
 
   const loadSchedule = async () => {
@@ -911,6 +937,9 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionSlots.forEach((slot) => {
       slot.addEventListener('click', (e) => {
         e.preventDefault();
+        if (isPhone) {
+          return; // mobile readonly
+        }
         const day = Number(slot.dataset.day);
         const isMorning = slot.dataset.morning === '1';
         const key = `${day}-${isMorning ? 1 : 0}`;
@@ -920,9 +949,13 @@ document.addEventListener('DOMContentLoaded', () => {
           showToast('Chọn lớp trước');
           return;
         }
+        if (!adminExpanded) {
+          showToast('Mở admin tool để chỉnh sửa lịch');
+          return;
+        }
         const isEditOn = localStorage.getItem(editKey()) === 'on';
         if (!isEditOn) {
-          showToast('Bật edit để thêm lịch');
+          showToast('Bật edit trong admin tool để chỉnh sửa');
           return;
         }
         openSubjectModal(day, isMorning, existingSlot);
