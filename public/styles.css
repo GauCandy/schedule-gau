@@ -995,6 +995,121 @@ input[type="number"] {
   transform: translateY(0);
 }
 
+.mobile-hide {
+  display: block;
+}
+
+.mobile-mode .mobile-hide {
+  display: none !important;
+}
+
+.mobile-mode .hero {
+  padding: 20px 18px;
+  gap: 14px;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.mobile-mode .brand {
+  justify-content: flex-start;
+  text-align: left;
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
+.mobile-mode .brand-text {
+  align-items: flex-start;
+}
+
+.mobile-mode .logo {
+  width: 76px;
+  height: 76px;
+}
+
+.mobile-mode .hero h1 {
+  font-size: 18px;
+}
+
+.mobile-mode .hero .lede {
+  display: none;
+}
+
+.mobile-mode .hero-middle {
+  width: 100%;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 140px);
+  gap: 10px;
+}
+
+.mobile-mode .hero-class {
+  width: 100%;
+  flex: 0 0 auto;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mobile-mode .hero-week {
+  align-items: center;
+  max-width: none;
+  width: 100%;
+  order: 0;
+  flex: 0 0 auto;
+}
+
+.mobile-mode .week-nav {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.mobile-mode .week-nav .pill {
+  flex: 1 1 0;
+  width: auto;
+  height: 38px;
+}
+
+.mobile-mode .week-title {
+  font-size: 10px;
+}
+
+.mobile-mode .week-value {
+  font-size: 18px;
+}
+
+.mobile-mode .schedule {
+  padding: 16px;
+}
+
+.mobile-mode .schedule-header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.mobile-mode .days {
+  grid-template-columns: 1fr;
+}
+
+.mobile-mode .class-trigger {
+  padding: 10px 12px;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.mobile-mode .session {
+  min-height: 48px;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.mobile-mode .subject-name {
+  font-size: 12px;
+}
+
+.mobile-mode .subject-meta {
+  font-size: 11px;
+}
+
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: 1fr;
@@ -1032,6 +1147,67 @@ input[type="number"] {
 }
 
 @media (max-width: 640px) {
+  .mobile-hide {
+    display: none !important;
+  }
+
+  .hero {
+    padding: 20px 18px;
+    gap: 14px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .brand {
+    justify-content: center;
+    text-align: center;
+    flex: 0 0 auto;
+  }
+
+  .brand-text {
+    align-items: center;
+  }
+
+  .hero-week {
+    align-items: center;
+    max-width: none;
+    width: 100%;
+    order: 3;
+    flex: 0 0 auto;
+  }
+
+  .week-nav {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .week-nav .pill {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  .hero-middle {
+    width: 100%;
+    flex-direction: column;
+    flex: 0 0 auto;
+    gap: 10px;
+  }
+
+  .hero-class {
+    width: 100%;
+    flex: 0 0 auto;
+  }
+
+  .schedule {
+    padding: 16px;
+  }
+
+  .schedule-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
   .days {
     grid-template-columns: 1fr;
   }

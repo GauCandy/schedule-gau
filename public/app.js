@@ -60,6 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentSlot = { day: null, isMorning: null };
   let scheduleMap = {};
 
+  // Nhận diện điện thoại để cố định giao diện mobile ngay cả khi xoay ngang
+  const ua = navigator.userAgent || '';
+  const isPhone =
+    /Mobi|Android.*Mobile|iPhone|iPod/i.test(ua) && !/iPad|Tablet/i.test(ua);
+  if (isPhone) {
+    document.body.classList.add('mobile-mode');
+  }
+
   const toggleDayDots = () => {
     const dots = document.querySelectorAll('.day-card .day-dot');
     if (!dots.length) return;
@@ -534,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.room) meta.push(`Phòng: ${data.room}`);
         slot.innerHTML = `
           <div class="subject-name">${data.subject_name}</div>
-          <div class="subject-meta">${meta.join(' · ') || ' '}</div>
+          <div class="subject-meta">${meta.join('<br>') || ' '}</div>
         `;
       } else {
         slot.classList.add('empty');
