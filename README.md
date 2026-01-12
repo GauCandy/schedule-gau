@@ -19,12 +19,14 @@ npm start            # mặc định cổng 3000
 ## Biến môi trường
 - `PORT`: cổng web, mặc định `3000`.
 - `ASSET_VERSION`: giá trị bất kỳ để bust cache (mặc định là timestamp khi khởi động).
-- `SSL_KEY_PATH`, `SSL_CERT_PATH`: đường dẫn file `.pem` để bật HTTPS. Nếu đặt đủ, server chạy HTTPS; nếu thiếu/fail sẽ fallback HTTP.
+- `SSL_ENABLED`: `true/false`, đặt `false` để tắt HTTPS ngay cả khi đã khai báo key/cert (mặc định `true`).
+- `SSL_KEY_PATH`, `SSL_CERT_PATH`: đường dẫn file `.pem` để bật HTTPS. Nếu đặt đủ và `SSL_ENABLED=true`, server chạy HTTPS; nếu thiếu/fail sẽ fallback HTTP.
 
 ## SSL nhanh (tùy chọn)
 Ví dụ dùng mkcert/openssl tạo cặp key/cert rồi chạy:
 ```bash
 PORT=3443 \
+SSL_ENABLED=true \
 SSL_KEY_PATH=./certs/private.pem \
 SSL_CERT_PATH=./certs/public.pem \
 npm start

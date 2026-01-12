@@ -10,6 +10,7 @@ const { initSchema } = require('./initSchema');
 require('dotenv').config();
 
 const ASSET_VERSION = process.env.ASSET_VERSION || Date.now().toString();
+const SSL_ENABLED = process.env.SSL_ENABLED !== 'false';
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -598,7 +599,13 @@ function startServer(port) {
   const handler = createHandler();
   const keyPath = process.env.SSL_KEY_PATH;
   const certPath = process.env.SSL_CERT_PATH;
-  if (keyPath && certPath && fsSync.existsSync(keyPath) && fsSync.existsSync(certPath)) {
+  if (
+    SSL_ENABLED &&
+    keyPath &&
+    certPath &&
+    fsSync.existsSync(keyPath) &&
+    fsSync.existsSync(certPath)
+  ) {
     try {
       const options = {
         key: fsSync.readFileSync(keyPath),
@@ -612,6 +619,8 @@ function startServer(port) {
     } catch (err) {
       console.error('Failed to start HTTPS server, falling back to HTTP:', err);
     }
+  } else if (!SSL_ENABLED) {
+    console.log('SSL disabled via env, starting HTTP only.');
   }
 
   const server = http.createServer(handler);
